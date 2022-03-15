@@ -8,10 +8,11 @@ module.exports = {
         console.log(req.body)
         let text =  req.body.text
             const childPython = spawn("C:/Users/samya/anaconda3/python.exe",['./controller/model_API.py',text])
-            // childPython.stdout.setEncoding('utf8');
+            // childPython.stdout.setEncoding('utf
             childPython.stdout.on('data',(data)=>{
-                console.log(`stdout':${data}`)
-                res.send({"result": data.toString().replace(/(\r\n|\n|\r)/gm, "")})
+                console.log(`stdout:${data}`)
+                res.send({'result':data.toString().replace(/(\r\n|\n|\r)/gm, "")})
+                // res.send({"prediction": data.to,"listOfNews":data.listOfNews})
             })
     
             childPython.stderr.on('data',(data)=>{

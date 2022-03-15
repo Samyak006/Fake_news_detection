@@ -21,19 +21,23 @@ class TextInput extends React.Component{
             headers:{
                 "Content-Type":"application/json"},
                 body:JSON.stringify({text})
-            });
+            })
         const data = await result.json();
         console.log(data)
         this.setState({result:data.result})
     }
     render(){
+        let Output;
+        if (this.state.result !==""){
+            Output = <OutputBox result ={this.state.result}/>
+        }
     return(
         <div>
             <form method="POST">
             <input type='text' placeholder='Enter the text'onChange={this.OnchangeText} ></input>
             <input type='submit' value='submit' onClick={this.OnTextSubmit} />
             </form>
-            <OutputBox result ={this.state.result}/>
+            {Output}
         </div>)}
 }
 

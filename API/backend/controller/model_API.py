@@ -15,7 +15,7 @@ from sklearn.compose import make_column_transformer
 from PIL import Image
 import pytesseract 
 from rake_nltk import Rake 
-import os
+import json
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
@@ -54,14 +54,14 @@ class FakeNewsAPI:
         text = text = " ".join(text.split())
         return str(text) 
 
-    def get_string_article(self,url):
-        page = requests.get(url)
-        page_soup = BeautifulSoup(page.content,'html.parser')
-        headline = page_soup.find_all("div",{"class":"fc-item__header"})
-        containers = page_soup.find_all("div",{"class":"fc-item__standfirst"})
-        for head,data in zip(headline,containers):
-            self.article.append(self.word_drop(head.text) +" "+ self.word_drop(data.text))
-        return self.article
+    # def get_string_article(self,url):
+    #     page = requests.get(url)
+    #     page_soup = BeautifulSoup(page.content,'html.parser')
+    #     headline = page_soup.find_all("div",{"class":"fc-item__header"})
+    #     containers = page_soup.find_all("div",{"class":"fc-item__standfirst"})
+    #     for head,data in zip(headline,containers):
+    #         self.article.append(self.word_drop(head.text) +" "+ self.word_drop(data.text))
+    #     return self.article
     
     def keyword_extractor(self,text):
         rake_nltk_var = Rake()
@@ -76,7 +76,7 @@ class FakeNewsAPI:
         # keywords = String[:-1]
         url = ('https://newsapi.org/v2/everything?'
                'q="'+keywords[0]+'"&'
-               'from=2022-03-01&'
+               'from=2022-03-10&'
                'sortBy=publishedAt&'
                'apiKey=90f109e6441746059c15c51f558f869b')
         response = requests.get(url)
@@ -89,13 +89,23 @@ class FakeNewsAPI:
         else:
             return "Fake News"
     
-    def textSimiliarty(text,news):                              #news should be in list format
+    def textSimilarty(self,text,news):                              #news should be in list format
         news.append(text)
+        similarText = {}
+        TextNews = []
         vectorizer = CountVectorizer()
-        features = vectorizer.fit_transform(text).todense()
-        for f in features:
-            print(euclidean_distances(features[0],f))
-
+        features = vectorizer.fit_transform(news).todense()
+        for n,f in zip(news,features):
+            similarText[n] = euclidean_distances(features[-1],f) 
+        coeff  = list(similarText.values())
+        Nnews = list(similarText.keys())
+        for _ in range(6):
+            minDist = coeff.index(min(coeff))
+            TextNews.append(Nnews[minDist])
+            coeff.pop(minDist)
+            Nnews.pop(minDist)
+        return TextNews[1:]
+        
 
     def __main__(self):
         u = pd.read_csv('./data/train.csv')
@@ -111,13 +121,16 @@ class FakeNewsAPI:
         y_pred = self.model.predict(predict_)
         # y_rand = self.model.predict(random)
         # print(self.Stringer(y_pred[0]))
-        print(y_pred)
         # print(y_rand)
 
         # fetching the news from newsAPI
+        similarNews = []
         relatedNews = self.RelatedArticles(self.keyword_extractor(text))
         for news in relatedNews['articles']:
-            print(news['url'])
+            similarNews.append(news['title'])
+        print(self.Stringer(y_pred))
+        for i in self.textSimilarty(text,similarNews):
+            print(i+"`")
                 
 
         #saving the model

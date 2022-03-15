@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer = () =>{
     return(
-      <div className='ui footer'>
+      <div className='footer'>
           this is a footer
       </div>  
           )
